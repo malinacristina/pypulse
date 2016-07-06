@@ -35,7 +35,11 @@ def simple_pulse(sampling_rate, params):
         duration = params['length']
     else:
         assert params['fromRepeats']
-        duration = (params['pulse_width'] + params['pulse_delay']) * params['repeats']
+        if params['fromValues']:
+            duration = (params['pulse_width'] + params['pulse_delay']) * params['repeats']
+        else:
+            assert params['fromDuty']
+            duration = (1.0 / frequency) * params['repeats']
 
     if params['isClean']:
         pulse, t = square_pulse(sampling_rate, duration, frequency, duty)
