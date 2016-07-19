@@ -52,8 +52,9 @@ def simple_pulse(sampling_rate, params):
     onset = np.zeros(sampling_rate * params['onset'])
     offset = np.zeros(sampling_rate * params['offset'])
 
-    total_length = duration + params['onset'] + params['offset']
-    return np.hstack((onset, pulse, offset)), np.linspace(0, total_length, total_length*sampling_rate, endpoint=False)
+    total_length = round(duration + params['onset'] + params['offset'], 10) # N.B. Have to round here due to floating point representation problem
+
+    return np.hstack((onset, pulse, offset)), np.linspace(0, total_length, total_length*sampling_rate)
 
 
 def multi_simple_pulse(sampling_rate, global_onset, global_offset, params_list):
@@ -91,7 +92,7 @@ def noise_pulse(sampling_rate, params):
     amp_min = params['amp_min']
     amp_max = params['amp_max']
 
-    t = np.linspace(0, duration, sampling_rate * duration, endpoint=False)
+    t = np.linspace(0, duration, sampling_rate * duration)
     np.random.seed(params['seed'])
     while len(guide_pulse) < len(t):
         guide_pulse = np.hstack((guide_pulse, np.ones(pulse_length) * np.random.uniform(amp_min, amp_max)))
@@ -106,7 +107,7 @@ def noise_pulse(sampling_rate, params):
     offset = np.zeros(sampling_rate * params['offset'])
 
     total_length = duration + params['onset'] + params['offset']
-    return np.hstack((onset, pulse, offset)), np.linspace(0, total_length, total_length * sampling_rate, endpoint=False)
+    return np.hstack((onset, pulse, offset)), np.linspace(0, total_length, total_length * sampling_rate)
 
 
 def multi_noise_pulse(sampling_rate, global_onset, global_offset, params_list):
