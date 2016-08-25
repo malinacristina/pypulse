@@ -95,8 +95,8 @@ def noise_pulse(sampling_rate, params):
     t = np.linspace(0, duration, sampling_rate * duration)
     np.random.seed(params['seed'])
     while len(guide_pulse) < len(t):
-        guide_pulse = np.hstack((guide_pulse, np.ones(pulse_length) * np.random.uniform(amp_min, amp_max)))
-        print(len(guide_pulse))
+        rand_param = np.random.uniform(amp_min, amp_max)
+        guide_pulse = np.hstack((guide_pulse, np.ones(pulse_length) * rand_param))
 
     guide_pulse = guide_pulse[0:sampling_rate*duration]
 
@@ -106,7 +106,7 @@ def noise_pulse(sampling_rate, params):
     onset = np.zeros(sampling_rate * params['onset'])
     offset = np.zeros(sampling_rate * params['offset'])
 
-    total_length = duration + params['onset'] + params['offset']
+    total_length = round(duration + params['onset'] + params['offset'], 10)
     return np.hstack((onset, pulse, offset)), np.linspace(0, total_length, total_length * sampling_rate)
 
 
