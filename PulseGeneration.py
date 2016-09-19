@@ -49,8 +49,8 @@ def simple_pulse(sampling_rate, params):
                                  params['shatter_duty'])
 
     # Attach onset and offset
-    onset = np.zeros(sampling_rate * params['onset'])
-    offset = np.zeros(sampling_rate * params['offset'])
+    onset = np.zeros(int(sampling_rate * params['onset']))
+    offset = np.zeros(int(sampling_rate * params['offset']))
 
     total_length = round(duration + params['onset'] + params['offset'], 10) # N.B. Have to round here due to floating point representation problem
 
