@@ -110,6 +110,35 @@ def noise_pulse(sampling_rate, params):
     return np.hstack((onset, pulse, offset)), np.linspace(0, total_length, total_length * sampling_rate)
 
 
+def dummy_noise_pulse(sampling_rate, params):
+    # Build main portion of pulse
+    pulse_length = int(sampling_rate / params['frequency'])
+    if params['fromLength']:
+        duration = params['length']
+    else:
+        assert params['fromRepeats']
+        duration = (params['repeats'] * pulse_length) / sampling_rate
+
+    guide_pulse = []
+
+    seed = params['seed']
+    amp_min = params['amp_min']
+    amp_max = params['amp_max']
+
+    t = np.linspace(0, duration, sampling_rate * duration)
+
+    guide_pulse = np.ones(sampling_rate*duration)
+
+    pulse = (np.array(signal.square(2 * np.pi * params['shatter_frequency'] * t, duty=guide_pulse)) / 2) + 0.5
+
+    # Attach onset and offset
+    onset = np.zeros(sampling_rate * params['onset'])
+    offset = np.zeros(sampling_rate * params['offset'])
+
+    total_length = round(duration + params['onset'] + params['offset'], 10)
+    return np.hstack((onset, pulse, offset)), np.linspace(0, total_length, total_length * sampling_rate)
+
+
 def multi_noise_pulse(sampling_rate, global_onset, global_offset, params_list):
     longest_t = []
     pulses = list()
@@ -130,13 +159,13 @@ def multi_noise_pulse(sampling_rate, global_onset, global_offset, params_list):
     return pulse_matrix, t
 
 
-# params = {'fromLength': True, 'fromRepeats': False, 'frequency': 20, 'repeats': 5, 'seed': 1, 'amp_min': 0.1,
-#           'amp_max': 0.9, 'shatter_frequency': 500, 'length': 1, 'onset': 0.1, 'offset': 0.1}
-#
-# pulse, t = noise_pulse(10000, params)
-#
-# plt.plot(t, pulse)
-# plt.show()
+params = {'fromLength': True, 'fromRepeats': False, 'frequency': 20, 'repeats': 5, 'seed': 1, 'amp_min': 0.1,
+          'amp_max': 0.9, 'shatter_frequency': 500, 'length': 1, 'onset': 0.1, 'offset': 0.1}
+
+pulse, t = dummy_noise_pulse(10000, params)
+
+plt.plot(t, pulse)
+plt.show()
 
 
 
