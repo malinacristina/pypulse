@@ -159,13 +159,13 @@ def multi_noise_pulse(sampling_rate, global_onset, global_offset, params_list):
     return pulse_matrix, t
 
 
-params = {'fromLength': True, 'fromRepeats': False, 'frequency': 20, 'repeats': 5, 'seed': 1, 'amp_min': 0.1,
-          'amp_max': 0.9, 'shatter_frequency': 500, 'length': 1, 'onset': 0.1, 'offset': 0.1}
+# params = {'fromLength': True, 'fromRepeats': False, 'frequency': 20, 'repeats': 5, 'seed': 1, 'amp_min': 0.1,
+#           'amp_max': 0.9, 'shatter_frequency': 500, 'length': 1, 'onset': 0.1, 'offset': 0.1}
+#
+# pulse, t = dummy_noise_pulse(10000, params)
 
-pulse, t = dummy_noise_pulse(10000, params)
-
-plt.plot(t, pulse)
-plt.show()
+# plt.plot(t, pulse)
+# plt.show()
 
 
 
