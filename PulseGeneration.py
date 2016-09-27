@@ -21,6 +21,42 @@ def shatter_pulse(sampling_rate, duration, frequency, duty, shatter_frequency, s
     return guide_pulse * shattered_pulse, t
 
 
+def random_shatter_pulse(sampling_rate, duration, frequency, duty, shatter_frequency, target_duty, amp_min, amp_max):
+    # this function generates a shattered pulse based on major pulse frequency and duty, as well as shatter frequency,
+    # minimum and maximum shatter duty. The function will generate standard pulse and then shatter it, with the duty
+    # of each shattered pulse randomised. The function will aim to keep the integral of the pulse at duty * target duty
+    if shatter_frequency < frequency:
+        raise ValueError('Shatter frequency must not be lower than major frequency.')
+
+    if target_duty < amp_min:
+        raise ValueError('Target shatter duty must be greater than the minimum duty specified')
+
+    if target_duty > amp_max:
+        raise ValueError('Target shatter duty must be less than the maximum duty specified')
+
+    t = np.linspace(0, duration, sampling_rate * duration, endpoint=False)
+
+    guide_pulse, _ = square_pulse(sampling_rate, duration, frequency, duty)
+
+    # calculate shatter duty bounds
+    if (target_duty - amp_min) < (amp_max - target_duty):
+        lower_duty_bound = amp_min
+        upper_duty_bound = target_duty + (target_duty - amp_min)
+    else:
+        upper_duty_bound = amp_max
+        lower_duty_bound = target_duty - (amp_max - target_duty)
+
+    shattered_guide = []
+    while len(shattered_guide) < len(t):
+        rand_param = np.random.uniform(lower_duty_bound, upper_duty_bound)
+        shattered_guide = np.hstack((shattered_guide, np.ones(int(sampling_rate / shatter_frequency)) * rand_param))
+
+    shattered_guide = shattered_guide[0:sampling_rate*duration]
+    shattered_pulse = (np.array(signal.square(2 * np.pi * shatter_frequency * t, duty=shattered_guide)) / 2) + 0.5
+
+    return guide_pulse * shattered_pulse, t
+
+
 def simple_pulse(sampling_rate, params):
     # Build main portion of pulse
     if params['fromDuty']:
@@ -167,6 +203,12 @@ def multi_noise_pulse(sampling_rate, global_onset, global_offset, params_list):
 # plt.plot(t, pulse)
 # plt.show()
 
-
+# Testing - random shatter
+# pulse, t = random_shatter_pulse(20000.0, 2.0, 5.0, 0.5, 200.0, 0.2, 0.1, 0.9)
+# print(sum(pulse) / len(pulse))
+# plt.plot(t, pulse)
+# plt.xlim((-0.1, 2.1))
+# plt.ylim((-0.1, 1.1))
+# plt.show()
 
 

@@ -13,6 +13,8 @@ def make_pulse(sampling_rate, global_onset, global_offset, params_list):
             this_pulse, t = PulseGeneration.noise_pulse(sampling_rate, params)
         elif params['type'] == 'DummyNoise':
             this_pulse, t = PulseGeneration.dummy_noise_pulse(sampling_rate, params)
+        elif params['type'] == 'RandomNoise':
+            this_pulse, t = PulseGeneration.random_noise_pulse(sampling_rate, params)
         else:
             raise ValueError
 
