@@ -57,6 +57,42 @@ def random_shatter_pulse(sampling_rate, duration, frequency, duty, shatter_frequ
     return guide_pulse * shattered_pulse, t
 
 
+def random_simple_pulse(sampling_rate, params):
+    # Build main portion of pulse
+    if params['fromDuty']:
+        frequency = params['frequency']
+        duty = params['duty']
+    else:
+        assert params['fromValues']
+        frequency = 1.0 / (params['pulse_width'] + params['pulse_delay'])
+        duty = params['pulse_width'] / (params['pulse_width'] + params['pulse_delay'])
+
+    if params['fromLength']:
+        duration = params['length']
+    else:
+        assert params['fromRepeats']
+        if params['fromValues']:
+            duration = (params['pulse_width'] + params['pulse_delay']) * params['repeats']
+        else:
+            assert params['fromDuty']
+            duration = (1.0 / frequency) * params['repeats']
+
+    if duration > 0.0:
+        pulse, t = random_shatter_pulse(sampling_rate, duration, frequency, duty, params['shatter_frequency'],
+                                    params['target_duty'], params['amp_min'], params['amp_max'])
+    else:
+        pulse, t = square_pulse(sampling_rate, duration, frequency, duty)
+
+    # Attach onset and offset
+    onset = np.zeros(int(sampling_rate * params['onset']))
+    offset = np.zeros(int(sampling_rate * params['offset']))
+
+    total_length = round(duration + params['onset'] + params['offset'],
+                         10)  # N.B. Have to round here due to floating point representation problem
+
+    return np.hstack((onset, pulse, offset)), np.linspace(0, total_length, total_length * sampling_rate)
+
+
 def simple_pulse(sampling_rate, params):
     # Build main portion of pulse
     if params['fromDuty']:
