@@ -22,21 +22,18 @@ def shatter_pulse(sampling_rate, duration, frequency, duty, shatter_frequency, s
 
 
 def random_shatter_pulse(sampling_rate, duration, frequency, duty, shatter_frequency, target_duty, amp_min, amp_max):
-    # this function generates a shattered pulse based on major pulse frequency and duty, as well as shatter frequency,
-    # minimum and maximum shatter duty. The function will generate standard pulse and then shatter it, with the duty
+    # this function generates a shattered pulse based on major pulse frequency and duty, as well as shatter frequency.
+    # The function will generate standard pulse and then shatter it, with the duty
     # of each shattered pulse randomised. The function will aim to keep the integral of the pulse at duty * target duty
     if shatter_frequency < frequency:
         raise ValueError('Shatter frequency must not be lower than major frequency.')
 
-    if target_duty < amp_min:
-        raise ValueError('Target shatter duty must be greater than the minimum duty specified')
-
-    if target_duty > amp_max:
-        raise ValueError('Target shatter duty must be less than the maximum duty specified')
-
     t = np.linspace(0, duration, sampling_rate * duration, endpoint=False)
 
     guide_pulse, _ = square_pulse(sampling_rate, duration, frequency, duty)
+
+    if target_duty == 1.0:
+        return guide_pulse, t
 
     # calculate shatter duty bounds
     if (target_duty - amp_min) < (amp_max - target_duty):
@@ -86,6 +83,15 @@ def random_simple_pulse(sampling_rate, params):
     # Attach onset and offset
     onset = np.zeros(int(sampling_rate * params['onset']))
     offset = np.zeros(int(sampling_rate * params['offset']))
+
+    # if we want to shadow the pulse, add this in here (repeat the pulse at a compensating duty)
+    if params['shadow']:
+        pulse_on = (1.0 / frequency) * duty
+        shadow, _ = random_shatter_pulse(sampling_rate, duration - pulse_on, frequency, duty,
+                                         params['shatter_frequency'], 1.0-params['target_duty'], params['amp_min'],
+                                         params['amp_max'])
+        shadow = np.hstack((np.zeros(int(pulse_on * sampling_rate)), shadow))
+        pulse = pulse + shadow
 
     total_length = round(duration + params['onset'] + params['offset'],
                          10)  # N.B. Have to round here due to floating point representation problem
@@ -240,7 +246,7 @@ def multi_noise_pulse(sampling_rate, global_onset, global_offset, params_list):
 # plt.show()
 
 # Testing - random shatter
-# pulse, t = random_shatter_pulse(20000.0, 2.0, 5.0, 0.5, 200.0, 0.2, 0.1, 0.9)
+# pulse, t = random_shatter_pulse(20000.0, 2.0, 5.0, 0.5, 200.0, 1.0, 0.1, 0.9)
 # print(sum(pulse) / len(pulse))
 # plt.plot(t, pulse)
 # plt.xlim((-0.1, 2.1))
