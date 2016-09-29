@@ -88,7 +88,7 @@ def random_simple_pulse(sampling_rate, params):
     if params['shadow']:
         pulse_on = (1.0 / frequency) * duty
         shadow, _ = random_shatter_pulse(sampling_rate, duration - pulse_on, frequency, duty,
-                                         params['shatter_frequency'], 1.0-params['target_duty'], params['amp_min'],
+                                         params['shatter_frequency'], 0.5-params['target_duty'], params['amp_min'],
                                          params['amp_max'])
         shadow = np.hstack((np.zeros(int(pulse_on * sampling_rate)), shadow))
         pulse = pulse + shadow
