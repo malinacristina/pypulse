@@ -130,9 +130,11 @@ def simple_pulse(sampling_rate, params):
     onset = np.zeros(int(sampling_rate * params['onset']))
     offset = np.zeros(int(sampling_rate * params['offset']))
 
+    pulse = np.hstack((onset, pulse, offset))
+
     total_length = round(duration + params['onset'] + params['offset'], 10) # N.B. Have to round here due to floating point representation problem
 
-    return np.hstack((onset, pulse, offset)), np.linspace(0, total_length, total_length*sampling_rate)
+    return pulse, np.linspace(0, total_length, total_length*sampling_rate)
 
 
 def multi_simple_pulse(sampling_rate, global_onset, global_offset, params_list):

@@ -1,4 +1,4 @@
-import PulseGeneration
+from PyPulse import PulseGeneration
 import numpy as np
 
 
