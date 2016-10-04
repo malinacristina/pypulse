@@ -96,7 +96,7 @@ def random_simple_pulse(sampling_rate, params):
     total_length = round(duration + params['onset'] + params['offset'],
                          10)  # N.B. Have to round here due to floating point representation problem
 
-    return np.hstack((onset, pulse, offset)), np.linspace(0, total_length, total_length * sampling_rate)
+    return np.hstack((onset, pulse, offset)), np.linspace(0, total_length, int(total_length * sampling_rate))
 
 
 def simple_pulse(sampling_rate, params):
