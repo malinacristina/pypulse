@@ -91,7 +91,13 @@ def random_simple_pulse(sampling_rate, params):
                                          params['shatter_frequency'], 0.5-params['target_duty'], params['amp_min'],
                                          params['amp_max'])
         shadow = np.hstack((np.zeros(int(pulse_on * sampling_rate)), shadow))
+        if len(shadow) < len(pulse):
+            size_diff = len(pulse) - len(shadow)
+            shadow = np.hstack((shadow, np.zeros(size_diff)))
+
         pulse = pulse + shadow
+
+        pulse[np.where(pulse > 1.0)] = 1.0
 
     total_length = round(duration + params['onset'] + params['offset'],
                          10)  # N.B. Have to round here due to floating point representation problem
