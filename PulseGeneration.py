@@ -48,7 +48,7 @@ def random_shatter_pulse(sampling_rate, duration, frequency, duty, shatter_frequ
         rand_param = np.random.uniform(lower_duty_bound, upper_duty_bound)
         shattered_guide = np.hstack((shattered_guide, np.ones(int(sampling_rate / shatter_frequency)) * rand_param))
 
-    shattered_guide = shattered_guide[0:sampling_rate*duration]
+    shattered_guide = shattered_guide[0:int(sampling_rate*duration)]
     shattered_pulse = (np.array(signal.square(2 * np.pi * shatter_frequency * t, duty=shattered_guide)) / 2) + 0.5
 
     return guide_pulse * shattered_pulse, t
