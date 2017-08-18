@@ -1,6 +1,7 @@
 import scipy.signal as signal
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.io as sio
 
 
 def square_pulse(sampling_rate, duration, frequency, duty):
@@ -220,6 +221,31 @@ def noise_pulse(sampling_rate, params):
 
     total_length = round(duration + params['onset'] + params['offset'], 10)
     return np.hstack((onset, pulse, offset)), np.linspace(0, total_length, total_length * sampling_rate)
+
+
+def plume_pulse(sampling_rate, params):
+    plume = sio.loadmat(params['data_path'])
+    plume = plume['plume'][0]
+
+    # resample to match sampling rate
+    resampled = signal.resample(plume, len(plume)*(sampling_rate / params['data_fs']))
+    # zero out negative values
+    resampled[resampled < 0] = 0
+    # normalise
+    resampled = (resampled - min(resampled)) / (max(resampled) - min(resampled))
+    resampled = resampled * params['target_max']
+
+    duration = len(resampled) / sampling_rate
+    t = np.linspace(0, duration, sampling_rate * duration)
+    pulse = (np.array(signal.square(2 * np.pi * params['shatter_frequency'] * t, duty=resampled)) / 2) + 0.5
+
+    # Attach onset and offset
+    onset = np.zeros(sampling_rate * params['onset'])
+    offset = np.zeros(sampling_rate * params['offset'])
+
+    total_length = round(params['onset'] + params['offset'] + len(pulse) / sampling_rate, 10)
+    return np.hstack((onset, pulse, offset)), np.linspace(0, total_length, total_length * sampling_rate)
+
 
 
 def dummy_noise_pulse(sampling_rate, params):
