@@ -184,7 +184,7 @@ def noise_pulse(sampling_rate, params):
         rand_param = np.random.uniform(amp_min, amp_max)
         guide_pulse = np.hstack((guide_pulse, np.ones(pulse_length) * rand_param))
 
-    guide_pulse = guide_pulse[0:sampling_rate*duration]
+    guide_pulse = guide_pulse[0:int(sampling_rate*duration)]
 
     pulse = (np.array(signal.square(2 * np.pi * params['shatter_frequency'] * t, duty=guide_pulse)) / 2) + 0.5
 
