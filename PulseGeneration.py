@@ -1,11 +1,28 @@
 import scipy.signal as signal
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.io as sio
 
 
 def square_pulse(sampling_rate, duration, frequency, duty):
     t = np.linspace(0, duration, sampling_rate * duration, endpoint=False)
     return (np.array(signal.square(2 * np.pi * frequency * t, duty=duty)) / 2) + 0.5, t
+
+
+def extended_square_pulse(sampling_rate, duration, frequency, duty):
+    # extension direction: 1 = forwards, -1 = backwards
+    t = np.linspace(0, duration, sampling_rate * duration, endpoint=False)
+    pulse = (np.array(signal.square(2 * np.pi * frequency * t, duty=duty)) / 2) + 0.5
+
+    distance = ((1.0 / frequency) * duty) * sampling_rate
+    extender = np.ones((int(distance)))
+
+    pulse = np.append(extender, pulse)
+
+    new_duration = duration+((1.0 / frequency) * duty)
+    t = np.linspace(0, new_duration, int(sampling_rate * new_duration), endpoint=False)
+
+    return pulse, t
 
 
 def shatter_pulse(sampling_rate, duration, frequency, duty, shatter_frequency, shatter_duty):
@@ -21,16 +38,20 @@ def shatter_pulse(sampling_rate, duration, frequency, duty, shatter_frequency, s
     return guide_pulse * shattered_pulse, t
 
 
-def random_shatter_pulse(sampling_rate, duration, frequency, duty, shatter_frequency, target_duty, amp_min, amp_max):
+def random_shatter_pulse(sampling_rate, duration, frequency, duty, shatter_frequency, target_duty, amp_min, amp_max, extend=False):
     # this function generates a shattered pulse based on major pulse frequency and duty, as well as shatter frequency.
     # The function will generate standard pulse and then shatter it, with the duty
     # of each shattered pulse randomised. The function will aim to keep the integral of the pulse at duty * target duty
     if shatter_frequency < frequency:
         raise ValueError('Shatter frequency must not be lower than major frequency.')
 
-    t = np.linspace(0, duration, sampling_rate * duration, endpoint=False)
+    if extend:
+        guide_pulse, _ = extended_square_pulse(sampling_rate, duration, frequency, duty)
+        duration = len(guide_pulse) / sampling_rate
+    else:
+        guide_pulse, _ = square_pulse(sampling_rate, duration, frequency, duty)
 
-    guide_pulse, _ = square_pulse(sampling_rate, duration, frequency, duty)
+    t = np.linspace(0, duration, sampling_rate * duration, endpoint=False)
 
     if target_duty == 1.0:
         return guide_pulse, t
@@ -75,8 +96,14 @@ def random_simple_pulse(sampling_rate, params):
             duration = (1.0 / frequency) * params['repeats']
 
     if duration > 0.0:
-        pulse, t = random_shatter_pulse(sampling_rate, duration, frequency, duty, params['shatter_frequency'],
-                                    params['target_duty'], params['amp_min'], params['amp_max'])
+        if 'extend' in params.keys():
+            pulse, t = random_shatter_pulse(sampling_rate, duration, frequency, duty, params['shatter_frequency'],
+                                            params['target_duty'], params['amp_min'], params['amp_max'],
+                                            extend=params['extend'])
+            duration = len(t) / sampling_rate
+        else:
+            pulse, t = random_shatter_pulse(sampling_rate, duration, frequency, duty, params['shatter_frequency'],
+                                        params['target_duty'], params['amp_min'], params['amp_max'])
     else:
         pulse, t = square_pulse(sampling_rate, duration, frequency, duty)
 
@@ -194,6 +221,31 @@ def noise_pulse(sampling_rate, params):
 
     total_length = round(duration + params['onset'] + params['offset'], 10)
     return np.hstack((onset, pulse, offset)), np.linspace(0, total_length, total_length * sampling_rate)
+
+
+def plume_pulse(sampling_rate, params):
+    plume = sio.loadmat(params['data_path'])
+    plume = plume['plume'][0]
+
+    # resample to match sampling rate
+    resampled = signal.resample(plume, len(plume)*(sampling_rate / params['data_fs']))
+    # zero out negative values
+    resampled[resampled < 0] = 0
+    # normalise
+    resampled = (resampled - min(resampled)) / (max(resampled) - min(resampled))
+    resampled = resampled * params['target_max']
+
+    duration = len(resampled) / sampling_rate
+    t = np.linspace(0, duration, sampling_rate * duration)
+    pulse = (np.array(signal.square(2 * np.pi * params['shatter_frequency'] * t, duty=resampled)) / 2) + 0.5
+
+    # Attach onset and offset
+    onset = np.zeros(sampling_rate * params['onset'])
+    offset = np.zeros(sampling_rate * params['offset'])
+
+    total_length = round(params['onset'] + params['offset'] + len(pulse) / sampling_rate, 10)
+    return np.hstack((onset, pulse, offset)), np.linspace(0, total_length, total_length * sampling_rate)
+
 
 
 def dummy_noise_pulse(sampling_rate, params):
