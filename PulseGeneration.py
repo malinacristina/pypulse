@@ -240,12 +240,11 @@ def plume_pulse(sampling_rate, params):
     pulse = (np.array(signal.square(2 * np.pi * params['shatter_frequency'] * t, duty=resampled)) / 2) + 0.5
 
     # Attach onset and offset
-    onset = np.zeros(sampling_rate * params['onset'])
-    offset = np.zeros(sampling_rate * params['offset'])
+    onset = np.zeros(int(sampling_rate * params['onset']))
+    offset = np.zeros(int(sampling_rate * params['offset']))
 
     total_length = round(params['onset'] + params['offset'] + len(pulse) / sampling_rate, 10)
     return np.hstack((onset, pulse, offset)), np.linspace(0, total_length, total_length * sampling_rate)
-
 
 
 def dummy_noise_pulse(sampling_rate, params):
