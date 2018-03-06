@@ -132,6 +132,65 @@ def random_simple_pulse(sampling_rate, params):
     return np.hstack((onset, pulse, offset)), np.linspace(0, total_length, int(total_length * sampling_rate))
 
 
+def spec_time_pulse(sampling_rate, params):
+    # Initial parameters
+    frequency = params['frequency']
+    p_times = params['pulse_times']
+    p_length = params['pulse_length']
+    target_duty = params['target_duty']
+    amp_min = params['amp_min']
+    amp_max = params['amp_max']
+    shatter_frequency = params['shatter_frequency']
+
+    if len(p_times) > 0:
+        duration = np.max(p_times) + (p_length * 2.0)
+    else:
+        duration = 0.0
+
+    # Generate guide clean pulse
+    pulse = np.zeros(int(duration*sampling_rate))
+    for pt in p_times:
+        s = int(pt*sampling_rate)
+        e = int((pt+p_length)*sampling_rate)
+        pulse[s:e] = 1.0
+
+    if params['invert']:
+        pulse = 1.0 - pulse
+
+    # Generate shattering guide
+    t = np.linspace(0, duration, int(duration * sampling_rate))
+    if (target_duty - amp_min) < (amp_max - target_duty):
+        lower_duty_bound = amp_min
+        upper_duty_bound = target_duty + (target_duty - amp_min)
+    else:
+        upper_duty_bound = amp_max
+        lower_duty_bound = target_duty - (amp_max - target_duty)
+
+    shattered_guide = []
+    while len(shattered_guide) < len(pulse):
+        rand_param = np.random.uniform(lower_duty_bound, upper_duty_bound)
+        shattered_guide = np.hstack((shattered_guide, np.ones(int(sampling_rate / shatter_frequency)) * rand_param))
+
+    shattered_guide = shattered_guide[0:int(sampling_rate*duration)]
+    shattered_pulse = (np.array(signal.square(2 * np.pi * shatter_frequency * t, duty=shattered_guide)) / 2) + 0.5
+
+    # Apply to guide clean pulse
+    pulse = pulse * shattered_pulse
+    if params['reverse']:
+        pulse = pulse[::-1]
+
+    # Attach onset and offset
+    onset = np.zeros(int(sampling_rate * params['onset']))
+    offset = np.zeros(int(sampling_rate * params['offset']))
+
+    pulse = np.hstack((onset, pulse, offset))
+
+    total_length = round(duration + params['onset'] + params['offset'], 10)
+    t = np.linspace(0, total_length, int(total_length * sampling_rate))
+
+    return pulse, t
+
+
 def simple_pulse(sampling_rate, params):
     # Build main portion of pulse
     if params['fromDuty']:
