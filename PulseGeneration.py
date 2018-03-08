@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+
+
 def square_pulse(sampling_rate, duration, frequency, duty):
     t = np.linspace(0, duration, sampling_rate * duration, endpoint=False)
     return (np.array(signal.square(2 * np.pi * frequency * t, duty=duty)) / 2) + 0.5, t
