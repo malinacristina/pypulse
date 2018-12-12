@@ -15,6 +15,10 @@ def make_pulse(sampling_rate, global_onset, global_offset, params_list):
             this_pulse, t = PulseGeneration.dummy_noise_pulse(sampling_rate, params)
         elif params['type'] == 'RandomNoise':
             this_pulse, t = PulseGeneration.random_simple_pulse(sampling_rate, params)
+        elif params['type'] == 'Plume':
+            this_pulse, t = PulseGeneration.plume_pulse(sampling_rate, params)
+        elif params['type'] == 'ContCorr':
+            this_pulse, t = PulseGeneration.spec_time_pulse(sampling_rate, params)
         else:
             raise ValueError
 
