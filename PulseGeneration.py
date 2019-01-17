@@ -287,7 +287,7 @@ def plume_pulse(sampling_rate, params):
     plume = plume['plume'][0]
 
     # resample to match sampling rate
-    resampled = signal.resample(plume, len(plume)*(sampling_rate / params['data_fs']))
+    resampled = signal.resample(plume, int(len(plume)*(sampling_rate / params['data_fs'])))
     # zero out negative values
     resampled[resampled < 0] = 0
     # normalise
