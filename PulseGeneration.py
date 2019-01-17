@@ -321,18 +321,13 @@ def anti_plume_pulse(sampling_rate, params):
     duration = len(resampled) / sampling_rate
     t = np.linspace(0, duration, sampling_rate * duration)
     pulse = (np.array(signal.square(2 * np.pi * params['shatter_frequency'] * t, duty=resampled)) / 2) + 0.5
-    print(max(pulse), min(pulse))
     anti_pulse = [1-i for i in pulse]
-    print(anti_pulse[50000], pulse[50000])
 
     # Attach onset and offset
     onset = np.zeros(int(sampling_rate * params['onset']))
     offset = np.zeros(int(sampling_rate * params['offset']))
 
     total_length = round(params['onset'] + params['offset'] + len(pulse) / sampling_rate, 10)
-    anti_pulse_returned = np.hstack((onset, anti_pulse, offset)), np.linspace(0, total_length, total_length * sampling_rate)
-    pulse_returned = np.hstack((onset, pulse, offset)), np.linspace(0, total_length, total_length * sampling_rate)
-    print(anti_pulse_returned[50000], pulse_returned[50000])
     return np.hstack((onset, anti_pulse, offset)), np.linspace(0, total_length, total_length * sampling_rate)
 
 def dummy_noise_pulse(sampling_rate, params):
