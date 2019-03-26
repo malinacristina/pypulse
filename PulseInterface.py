@@ -19,6 +19,8 @@ def make_pulse(sampling_rate, global_onset, global_offset, params_list):
             this_pulse, t = PulseGeneration.plume_pulse(sampling_rate, params)
         elif params['type'] == 'ContCorr':
             this_pulse, t = PulseGeneration.spec_time_pulse(sampling_rate, params)
+        elif params['type'] == 'Anti Plume':
+            this_pulse, t = PulseGeneration.anti_plume_pulse(sampling_rate, params)
         else:
             raise ValueError
 
